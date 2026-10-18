@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocab Gym: 113 統測單字特訓班</title>
+    <!-- React & Tailwind -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Nunito', 'Noto Sans TC', sans-serif;
+            background-color: #E0F2FE;
+            overscroll-behavior: none;
+            user-select: none;
+        }
+
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-press {
+            transition: all 0.1s;
+        }
+        .btn-press:active {
+            transform: scale(0.95);
+        }
+
+        /* 關鍵字模式特效 */
+        .blur-text {
+            color: transparent;
+            text-shadow: 0 0 8px rgba(0,0,0,0.2);
+            transition: all 0.5s ease;
+        }
+        .focus-text {
+            color: #000;
+            background-color: #FEF08A;
+            padding: 0 4px;
+            border-radius: 4px;
+            font-weight: bold;
+            box-shadow: 0 0 10px #FEF08A;
+            transition: all 0.5s ease;
+        }
+
+        .animate-pop {
+            animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes pop {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // ==========================================
+        // 1. 資料庫 (113 年統測第一大題 完整 10 題)
+        // ==========================================
+        const VOCAB_DATA = [
+            {
+                id: "113-1",
+                question: "Johnny is wearing a very _____ hat that looks different from those of other people.",
+                options: [
+                    { id: "A", word: "common", trans: "普通的" },
+                    { id: "B", word: "general", trans: "一般的" },
+                    { id: "C", word: "regular", trans: "正常的" },
+                    { id: "D", word: "special", trans: "特別的" }
+                ],
+                answer: "D",
+                clues: ["looks different", "other people"],
+                chunk: "special hat",
+                chunkTrans: "特別的帽子",
+                trans: "Johnny 戴著一頂非常特別的帽子，看起來與其他人的不同。",
+                icon: "🎩"
+            },
+            {
+                id: "113-2",
+                question: "Loud noises can make it hard for me to _____, so I always find a quiet place to study with full attention.",
+                options: [
+                    { id: "A", word: "bend", trans: "彎曲" },
+                    { id: "B", word: "focus", trans: "專注" },
+                    { id: "C", word: "panic", trans: "恐慌" },
+                    { id: "D", word: "wander", trans: "遊蕩" }
+                ],
+                answer: "B",
+                clues: ["Loud noises", "hard for me", "quiet place", "full attention"],
+                chunk: "hard to focus",
+                chunkTrans: "難以專心",
+                trans: "大聲的噪音會讓我很難專注，所以我總是找一個安靜的地方全神貫注地學習。",
+                icon: "🎧"
+            },
+            {
+                id: "113-3",
+                question: "Here is a helpful _____ for cooking chicken soup: add a little salt. It will make the soup tasty.",
+                options: [
+                    { id: "A", word: "lip", trans: "嘴唇" },
+                    { id: "B", word: "gap", trans: "缺口" },
+                    { id: "C", word: "tip", trans: "秘訣/建議" },
+                    { id: "D", word: "nap", trans: "打盹" }
+                ],
+                answer: "C",
+                clues: ["helpful", "cooking chicken soup", "add salt"],
+                chunk: "helpful tip",
+                chunkTrans: "實用的秘訣",
+                trans: "這是一個煮雞湯的實用秘訣：加一點鹽。這會讓湯變得美味。",
+                icon: "🍲"
+            },
+            {
+                id: "113-4",
+                question: "My grandpa sleeps at _____ the same time every day. He goes to bed at about 9 pm.",
+                options: [
+                    { id: "A", word: "briefly", trans: "簡短地" },
+                    { id: "B", word: "fluently", trans: "流利地" },
+                    { id: "C", word: "gently", trans: "溫和地" },
+                    { id: "D", word: "roughly", trans: "大約地" }
+                ],
+                answer: "D",
+                clues: ["same time", "about 9 pm"],
+                chunk: "roughly the same time",
+                chunkTrans: "大約相同的時間",
+                trans: "我爺爺每天大約在同一個時間睡覺。他每天晚上大約 9 點睡覺。",
+                icon: "⏰"
+            },
+            {
+                id: "113-5",
+                question: "Being friendly with your roommates can help you stay away from _____ with them.",
+                options: [
+                    { id: "A", word: "dialogues", trans: "對話" },
+                    { id: "B", word: "conflicts", trans: "衝突" },
+                    { id: "C", word: "personality", trans: "個性" },
+                    { id: "D", word: "relationship", trans: "關係" }
+                ],
+                answer: "B",
+                clues: ["Being friendly", "stay away from"],
+                chunk: "stay away from conflicts",
+                chunkTrans: "遠離衝突",
+                trans: "與室友友好相處可以幫助你遠離與他們的衝突。",
+                icon: "🤝"
+            },
+            {
+                id: "113-6",
+                question: "Jack is a very _____ person. He will never change his decisions no matter how hard you try to persuade him.",
+                options: [
+                    { id: "A", word: "easy-going", trans: "隨和的" },
+                    { id: "B", word: "democratic", trans: "民主的" },
+                    { id: "C", word: "obedient", trans: "順從的" },
+                    { id: "D", word: "stubborn", trans: "固執的" }
+                ],
+                answer: "D",
+                clues: ["never change his decisions", "try to persuade"],
+                chunk: "stubborn person",
+                chunkTrans: "固執的人",
+                trans: "Jack 是一個非常固執的人。無論你多麼努力說服他，他都不會改變自己的決定。",
+                icon: "🐂"
+            },
+            {
+                id: "113-7",
+                question: "Kuo, Hsing-chun won a gold medal in the 2020 Tokyo Olympics. I _____ her a lot and want to be like her one day.",
+                options: [
+                    { id: "A", word: "admire", trans: "欽佩/欣賞" },
+                    { id: "B", word: "frighten", trans: "嚇唬" },
+                    { id: "C", word: "impress", trans: "使印象深刻" },
+                    { id: "D", word: "suspect", trans: "懷疑" }
+                ],
+                answer: "A",
+                clues: ["gold medal", "want to be like her"],
+                chunk: "admire her a lot",
+                chunkTrans: "非常欽佩她",
+                trans: "郭婞淳在 2020 年東京奧運會上贏得了金牌。我非常欽佩她，並希望有一天能像她一樣。",
+                icon: "🏋️‍♀️"
+            },
+            {
+                id: "113-8",
+                question: "Though she hurt her arm last week, Amy could still play the violin as _____ (skillfully) as before.",
+                options: [
+                    { id: "A", word: "casually", trans: "隨意地" },
+                    { id: "B", word: "cruelly", trans: "殘酷地" },
+                    { id: "C", word: "smoothly", trans: "熟練地/順暢地" },
+                    { id: "D", word: "strictly", trans: "嚴格地" }
+                ],
+                answer: "C",
+                clues: ["skillfully", "play the violin"],
+                chunk: "play as smoothly as before",
+                chunkTrans: "如以往般熟練地演奏",
+                trans: "雖然上週她手臂受傷了，但 Amy 仍然可以像以前一樣熟練/順暢地拉小提琴。(同義字測驗)",
+                icon: "🎻"
+            },
+            {
+                id: "113-9",
+                question: "May has to _____ (conquer) her fear of flying if she wants to travel by airplane.",
+                options: [
+                    { id: "A", word: "beat", trans: "戰勝/克服" },
+                    { id: "B", word: "hunt", trans: "追捕" },
+                    { id: "C", word: "recover", trans: "康復" },
+                    { id: "D", word: "select", trans: "選擇" }
+                ],
+                answer: "A",
+                clues: ["conquer", "fear of flying"],
+                chunk: "beat her fear",
+                chunkTrans: "克服/戰勝恐懼",
+                trans: "如果 May 想乘飛機旅行，她必須克服對飛行的恐懼。(同義字測驗)",
+                icon: "✈️"
+            },
+            {
+                id: "113-10",
+                question: "It is _____ (against the law) for drivers not to stop at the crosswalk and allow walkers to cross first.",
+                options: [
+                    { id: "A", word: "illegal", trans: "違法的" },
+                    { id: "B", word: "national", trans: "國家的" },
+                    { id: "C", word: "political", trans: "政治的" },
+                    { id: "D", word: "unusual", trans: "不尋常的" }
+                ],
+                answer: "A",
+                clues: ["against the law", "drivers", "crosswalk"],
+                chunk: "illegal for drivers",
+                chunkTrans: "對駕駛來說是違法的",
+                trans: "對於司機不在人行道停車並讓行人先過是違法的。如果司機這樣做，他們將被罰款。(同義字測驗)",
+                icon: "🚦"
+            }
+        ];
+
+        // ==========================================
+        // 2. 音效管理 (Web Audio API & SpeechSynthesis)
+        // ==========================================
+        const playSound = (type) => {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            
+            const ctx = new AudioContext();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            
+            if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.5);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, ctx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.3);
+            } else if (type === 'powerup') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(800, ctx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.3);
+            }
+        };
+
+        const speak = (text) => {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.9;
+            window.speechSynthesis.speak(utterance);
+        };
+
+        // ==========================================
+        // 3. React 元件
+        // ==========================================
+        const { useState } = React;
+
+        const ProgressBar = ({ current, total }) => {
+            const width = `${(current / total) * 100}%`;
+            return (
+                <div className="w-full bg-blue-200 h-3 rounded-full mt-4 overflow-hidden">
+                    <div className="bg-blue-500 h-full transition-all duration-500 ease-out" style={{ width }}></div>
+                </div>
+            );
+        };
+
+        const LifelineButton = ({ icon, label, count, onClick, disabled, color }) => {
+            return (
+                <button 
+                    onClick={onClick}
+                    disabled={disabled || count <= 0}
+                    className={`flex flex-col items-center justify-center p-2 rounded-xl border-b-4 transition-all active:border-b-0 active:translate-y-1 w-full
+                        ${disabled || count <= 0 
+                            ? 'bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed' 
+                            : `${color} border-opacity-70 text-white shadow-md hover:brightness-110`
+                        }
+                    `}
+                >
+                    <div className="text-xl mb-1">{icon}</div>
+                    <div className="text-[10px] font-bold uppercase">{label}</div>
+                    <div className="text-xs bg-black/20 px-2 rounded-full mt-1">x{count}</div>
+                </button>
+            );
+        };
+
+        const App = () => {
+            const [gameState, setGameState] = useState('welcome'); 
+            const [name, setName] = useState('');
+            const [qIndex, setQIndex] = useState(0);
+            const [score, setScore] = useState(0);
+            const [combo, setCombo] = useState(0);
+            const [wrongList, setWrongList] = useState([]);
+            
+            const [clueActive, setClueActive] = useState(false);
+            const [fiftyActive, setFiftyActive] = useState(false);
+            const [showChineseHint, setShowChineseHint] = useState(false);
+            const [disabledOptions, setDisabledOptions] = useState([]);
+            
+            const [clueCount, setClueCount] = useState(3);
+            const [fiftyCount, setFiftyCount] = useState(2);
+            const [chineseHintCount, setChineseHintCount] = useState(5);
+
+            const [feedback, setFeedback] = useState(null); 
+            const [showChunk, setShowChunk] = useState(false);
+
+            const currentQ = VOCAB_DATA[qIndex];
+
+            const startGame = () => {
+                if (!name.trim()) {
+                    alert("請輸入名字!");
+                    return;
+                }
+                setGameState('playing');
+                setQIndex(0);
+                setScore(0);
+                setCombo(0);
+                setWrongList([]);
+                setClueCount(3);
+                setFiftyCount(2);
+                setChineseHintCount(5);
+                resetRound();
+                playSound('powerup');
+            };
+
+            const resetRound = () => {
+                setClueActive(false);
+                setFiftyActive(false);
+                setShowChineseHint(false);
+                setDisabledOptions([]);
+                setFeedback(null);
+                setShowChunk(false);
+            };
+
+            const handleUseClue = () => {
+                if (clueCount > 0 && !clueActive) {
+                    setClueActive(true);
+                    setClueCount(c => c - 1);
+                    playSound('powerup');
+                }
+            };
+
+            const handleUseFifty = () => {
+                if (fiftyCount > 0 && !fiftyActive) {
+                    setFiftyActive(true);
+                    setFiftyCount(c => c - 1);
+                    playSound('powerup');
+                    
+                    const wrongOptionIds = currentQ.options
+                        .filter(o => o.id !== currentQ.answer)
+                        .map(o => o.id);
+                    
+                    const shuffled = wrongOptionIds.sort(() => 0.5 - Math.random());
+                    setDisabledOptions(shuffled.slice(0, 2));
+                }
+            };
+
+            const handleUseChineseHint = () => {
+                if (chineseHintCount > 0 && !showChineseHint) {
+                    setShowChineseHint(true);
+                    setChineseHintCount(c => c - 1);
+                    playSound('powerup');
+                }
+            };
+
+            const handleAnswer = (optionId) => {
+                if (feedback) return;
+
+                const isCorrect = optionId === currentQ.answer;
+
+                if (isCorrect) {
+                    setFeedback('correct');
+                    setScore(s => s + 10 + combo * 2);
+                    setCombo(c => c + 1);
+                    playSound('correct');
+                } else {
+                    setFeedback('wrong');
+                    setCombo(0);
+                    playSound('wrong');
+                    setWrongList(prev => [...prev, currentQ]);
+                }
+                
+                setShowChunk(true);
+            };
+
+            const nextQuestion = () => {
+                if (qIndex < VOCAB_DATA.length - 1) {
+                    setQIndex(prev => prev + 1);
+                    resetRound();
+                } else {
+                    setGameState('result');
+                }
+            };
+
+            const renderQuestionText = () => {
+                const parts = currentQ.question.split('_____');
+                const before = parts[0];
+                const after = parts[1];
+
+                const highlightWord = (text) => {
+                    if (!clueActive) return <span>{text}</span>;
+
+                    return text.split(' ').map((word, i) => {
+                        const cleanWord = word.replace(/[.,?!();]/g, '').toLowerCase();
+                        const isClue = currentQ.clues.some(clue => clue.toLowerCase().includes(cleanWord));
+                        
+                        return (
+                            <span key={i} className={`inline-block mr-1 transition-all duration-500 ${isClue ? 'focus-text' : 'blur-text'}`}>
+                                {word}
+                            </span>
+                        );
+                    });
+                };
+
+                return (
+                    <div className="text-xl font-medium leading-relaxed text-gray-800">
+                        {highlightWord(before)}
+                        <span className="inline-block border-b-4 border-blue-400 min-w-[60px] text-center px-2 font-bold text-blue-600 mx-1">
+                            {feedback ? currentQ.options.find(o => o.id === currentQ.answer).word : '_____'}
+                        </span>
+                        {after && highlightWord(after)}
+                    </div>
+                );
+            };
+
+            if (gameState === 'welcome') {
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center p-6">
+                        <div className="bg-white p-8 rounded-3xl card-shadow max-w-sm w-full text-center">
+                            <div className="text-6xl mb-4">💪</div>
+                            <h1 className="text-3xl font-black text-blue-600 mb-2">Vocab Gym</h1>
+                            <p className="text-gray-500 mb-8 font-bold">113 統測單字特訓班</p>
+                            
+                            <input 
+                                type="text" 
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="輸入你的名字"
+                                className="w-full bg-gray-100 border-2 border-transparent focus:border-blue-400 rounded-xl px-4 py-3 text-center text-lg font-bold mb-4 outline-none transition-all"
+                            />
+
+                            <button onClick={startGame} className="w-full bg-blue-500 text-white font-bold py-4 rounded-xl shadow-lg border-b-4 border-blue-700 active:border-b-0 active:translate-y-1 transition-all btn-press text-xl">
+                                開始特訓！
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (gameState === 'result') {
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center p-6">
+                        <div className="bg-white p-8 rounded-3xl card-shadow max-w-sm w-full text-center">
+                            <h2 className="text-3xl font-black text-gray-800 mb-2">特訓完成!</h2>
+                            <p className="text-xl text-blue-500 font-bold mb-6">學員: {name}</p>
+                            
+                            <div className="bg-yellow-100 rounded-2xl p-4 mb-6">
+                                <p className="text-sm text-yellow-700 font-bold uppercase tracking-wider">Total Score</p>
+                                <p className="text-5xl font-black text-yellow-500">{score}</p>
+                            </div>
+
+                            {wrongList.length > 0 ? (
+                                <div className="text-left mb-6">
+                                    <p className="text-gray-400 font-bold mb-2 text-sm uppercase">需複習的語塊 ({wrongList.length})</p>
+                                    <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
+                                        {wrongList.map(q => (
+                                            <div key={q.id} className="bg-red-50 p-3 rounded-lg border-l-4 border-red-400 flex justify-between items-center">
+                                                <div>
+                                                    <span className="text-xl mr-2">{q.icon}</span>
+                                                    <span className="font-bold text-gray-700">{q.chunk}</span>
+                                                </div>
+                                                <button onClick={() => speak(q.chunk)} className="text-gray-400 hover:text-blue-500 w-10 h-10 flex items-center justify-center rounded-full hover:bg-white hover:shadow transition-all">
+                                                    <i className="fas fa-volume-up"></i>
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="mb-8 text-green-500 font-bold text-lg">
+                                    太強了！113 統測單字全對！ 🎉
+                                </div>
+                            )}
+
+                            <button onClick={() => window.location.reload()} className="w-full bg-gray-200 text-gray-600 font-bold py-3 rounded-xl hover:bg-gray-300 transition-all">
+                                再玩一次
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen flex flex-col items-center pt-6 pb-6 px-4 max-w-md mx-auto relative">
+                    <div className="w-full flex justify-between items-end mb-4 px-2">
+                        <div>
+                            <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">Score</div>
+                            <div className="text-3xl font-black text-blue-600">{score}</div>
+                        </div>
+                        {combo > 1 && (
+                            <div className="text-center animate-pop">
+                                <div className="text-xs font-bold text-orange-400 uppercase tracking-widest">Combo</div>
+                                <div className="text-3xl font-black text-orange-500 italic">x{combo}</div>
+                            </div>
+                        )}
+                        <div className="text-right">
+                            <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">Question</div>
+                            <div className="text-xl font-bold text-gray-600">{qIndex + 1} <span className="text-sm text-gray-400">/ {VOCAB_DATA.length}</span></div>
+                        </div>
+                    </div>
+
+                    <ProgressBar current={qIndex} total={VOCAB_DATA.length} />
+
+                    <div className="mt-6 w-full bg-white rounded-3xl p-6 card-shadow min-h-[200px] flex flex-col justify-center relative overflow-hidden">
+                        {clueActive && (
+                            <div className="absolute top-0 right-0 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-bl-xl z-10">
+                                <i className="fas fa-search mr-1"></i> 偵探模式
+                            </div>
+                        )}
+                        {showChineseHint && (
+                            <div className="absolute top-0 left-0 bg-green-400 text-green-900 text-xs font-bold px-3 py-1 rounded-br-xl z-10">
+                                <i className="fas fa-language mr-1"></i> 中文提示
+                            </div>
+                        )}
+                        
+                        {renderQuestionText()}
+
+                        {(showChunk || showChineseHint) && (
+                            <div className="mt-4 pt-4 border-t border-gray-100 text-gray-500 text-sm animate-pop">
+                                {currentQ.trans}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3 mt-6 w-full px-2">
+                        <LifelineButton 
+                            icon="🔍" 
+                            label="線索" 
+                            count={clueCount} 
+                            onClick={handleUseClue}
+                            color="bg-purple-500 border-purple-700"
+                            disabled={showChunk}
+                        />
+                        <LifelineButton 
+                            icon="✂️" 
+                            label="50/50" 
+                            count={fiftyCount} 
+                            onClick={handleUseFifty}
+                            color="bg-pink-500 border-pink-700"
+                            disabled={showChunk}
+                        />
+                        <LifelineButton 
+                            icon="🌏" 
+                            label="中譯卡" 
+                            count={chineseHintCount} 
+                            onClick={handleUseChineseHint}
+                            color="bg-green-500 border-green-700"
+                            disabled={showChunk || showChineseHint}
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 mt-6 w-full">
+                        {currentQ.options.map((opt) => {
+                            const isDisabled = disabledOptions.includes(opt.id);
+                            
+                            let btnClass = "bg-white border-gray-200 text-gray-700 hover:border-blue-300";
+                            if (feedback) {
+                                if (opt.id === currentQ.answer) {
+                                    btnClass = "bg-green-500 border-green-700 text-white";
+                                } else if (isDisabled) {
+                                    btnClass = "opacity-0 cursor-default";
+                                } else {
+                                    btnClass = "bg-gray-100 border-gray-200 text-gray-400 opacity-50";
+                                }
+                            } else {
+                                if (isDisabled) btnClass = "opacity-20 cursor-not-allowed bg-gray-100 border-gray-200";
+                            }
+
+                            return (
+                                <button 
+                                    key={opt.id}
+                                    onClick={() => !isDisabled && handleAnswer(opt.id)}
+                                    disabled={showChunk || isDisabled}
+                                    className={`
+                                        p-4 rounded-2xl font-bold text-lg border-b-4 transition-all relative overflow-hidden
+                                        ${btnClass}
+                                        ${!showChunk && !isDisabled ? 'active:border-b-0 active:translate-y-1' : ''}
+                                    `}
+                                >
+                                    <div className="flex flex-col items-center">
+                                        <span>{opt.word}</span>
+                                        {(showChunk || clueActive || showChineseHint) && (
+                                            <span className="text-xs font-normal opacity-80 mt-1">{opt.trans}</span>
+                                        )}
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {showChunk && (
+                        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.2)] animate-pop z-50 max-w-md mx-auto">
+                            <div className={`text-center mb-4 ${feedback === 'correct' ? 'text-green-500' : 'text-red-500'}`}>
+                                <i className={`fas fa-3x ${feedback === 'correct' ? 'fa-check-circle' : 'fa-times-circle'} mb-2`}></i>
+                                <div className="text-lg font-black uppercase">{feedback === 'correct' ? 'Excellent!' : 'Keep Going!'}</div>
+                            </div>
+                            
+                            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex items-center mb-4">
+                                <div className="text-4xl mr-4">{currentQ.icon}</div>
+                                <div>
+                                    <div className="text-xs text-blue-400 font-bold uppercase tracking-wider mb-1">Golden Chunk</div>
+                                    <div className="text-xl font-bold text-gray-800">{currentQ.chunk}</div>
+                                    <div className="text-gray-500">{currentQ.chunkTrans}</div>
+                                </div>
+                                <button onClick={() => speak(currentQ.chunk)} className="ml-auto w-12 h-12 bg-white rounded-full shadow-md text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-colors">
+                                    <i className="fas fa-volume-up text-lg"></i>
+                                </button>
+                            </div>
+
+                            <button onClick={nextQuestion} className="w-full bg-gray-800 text-white font-bold py-4 rounded-xl text-xl shadow-lg active:scale-95 transition-transform">
+                                下一題 <i className="fas fa-arrow-right ml-2"></i>
+                            </button>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
